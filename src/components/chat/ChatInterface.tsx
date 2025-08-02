@@ -214,15 +214,17 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
         {/* Navigation Tabs */}
         <div className="container mx-auto px-4 pb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className={`grid w-full ${user.role === 'supervisor' || user.role === 'agent' ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <TabsTrigger value="chat" className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 AI Assistant
               </TabsTrigger>
-              <TabsTrigger value="member" className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                Call Assist
-              </TabsTrigger>
+              {(user.role === 'supervisor' || user.role === 'agent') && (
+                <TabsTrigger value="member" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Call Assist
+                </TabsTrigger>
+              )}
               <TabsTrigger value="bookmarks" className="flex items-center gap-2">
                 <Bookmark className="w-4 h-4" />
                 Saved Insights
