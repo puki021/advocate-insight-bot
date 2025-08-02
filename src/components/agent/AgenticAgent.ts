@@ -95,6 +95,12 @@ export class AgenticAgent {
     if (lowerQuery.includes('campaign') || lowerQuery.includes('marketing')) {
       entities.push('campaigns');
     }
+    if (lowerQuery.includes('member') || lowerQuery.includes('customer') || lowerQuery.includes('caller')) {
+      entities.push('member');
+    }
+    if (lowerQuery.includes('journey') || lowerQuery.includes('touchpoint')) {
+      entities.push('journey');
+    }
     
     return entities;
   }
@@ -141,6 +147,44 @@ export class AgenticAgent {
             parameters: [{ metrics: ['conversions', 'revenue'] }],
             reasoning: 'User wants campaign performance analysis'
           };
+        }
+        if (entities.includes('member') || entities.includes('journey')) {
+          // Extract potential member identifier from query
+          const memberIdMatch = query.match(/\b[A-Z]\d{3,}\b/); // Pattern like M001
+          const phoneMatch = query.match(/\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/); // Phone pattern
+          
+          if (memberIdMatch) {
+            if (entities.includes('journey')) {
+              return {
+                useTools: ['member_journey'],
+                parameters: [{ member_id: memberIdMatch[0] }],
+                reasoning: 'User wants member journey analysis'
+              };
+            }
+            return {
+              useTools: ['member_lookup'],
+              parameters: [{ search_term: memberIdMatch[0], search_type: 'id' }],
+              reasoning: 'User wants to lookup specific member by ID'
+            };
+          }
+          
+          if (phoneMatch) {
+            return {
+              useTools: ['member_lookup'],
+              parameters: [{ search_term: phoneMatch[0], search_type: 'phone' }],
+              reasoning: 'User wants to lookup member by phone number'
+            };
+          }
+          
+          // Look for potential name in query
+          const nameMatch = query.match(/(?:member|customer|caller)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
+          if (nameMatch) {
+            return {
+              useTools: ['member_lookup'],
+              parameters: [{ search_term: nameMatch[1], search_type: 'name' }],
+              reasoning: 'User wants to lookup member by name'
+            };
+          }
         }
         break;
         

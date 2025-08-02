@@ -204,6 +204,25 @@ export const availableTools: Tool[] = [
       { name: "segment", type: "string", description: "Customer or call segment", required: false }
     ],
     category: "Quality"
+  },
+  {
+    id: "member_lookup",
+    name: "Member Information Lookup",
+    description: "Find member profile information by ID, name, or phone number",
+    parameters: [
+      { name: "search_term", type: "string", description: "Member ID, name, or phone number", required: true },
+      { name: "search_type", type: "string", description: "Type of search: id, name, or phone", required: false }
+    ],
+    category: "Member Services"
+  },
+  {
+    id: "member_journey",
+    name: "Member Journey Analysis",
+    description: "Analyze customer journey and touchpoint interactions",
+    parameters: [
+      { name: "member_id", type: "string", description: "Member ID to analyze", required: true }
+    ],
+    category: "Member Services"
   }
 ];
 

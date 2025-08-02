@@ -11,6 +11,8 @@ import { KPICard } from './KPICard';
 import { ChartMessage } from './ChartMessage';
 import { BookmarkManager, useBookmarking } from '@/components/bookmarks/BookmarkManager';
 import { ReportGenerator } from '@/components/reporting/ReportGenerator';
+import { MemberAssist } from './MemberAssist';
+import { MemberProfile } from '@/data/memberData';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -35,6 +37,7 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
   const [activeTab, setActiveTab] = useState('chat');
   const [selectedBookmarks, setSelectedBookmarks] = useState<any[]>([]);
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [memberContext, setMemberContext] = useState<MemberProfile | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const agent = new AgenticAgent();
   const { addBookmark } = useBookmarking(user.role);
@@ -60,10 +63,16 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
     setInput('');
     setIsTyping(true);
 
+    // Add member context if available
+    let contextualInput = input;
+    if (memberContext) {
+      contextualInput = `[Member Context: ${memberContext.name} (${memberContext.memberId})] ${input}`;
+    }
+
     // Use agentic AI with reasoning and tools
     setTimeout(async () => {
       try {
-        const agentResponse = await agent.processQuery(input, user.role);
+        const agentResponse = await agent.processQuery(contextualInput, user.role);
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           content: agentResponse.content,
@@ -205,10 +214,14 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
         {/* Navigation Tabs */}
         <div className="container mx-auto px-4 pb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="chat" className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 AI Assistant
+              </TabsTrigger>
+              <TabsTrigger value="member" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Call Assist
               </TabsTrigger>
               <TabsTrigger value="bookmarks" className="flex items-center gap-2">
                 <Bookmark className="w-4 h-4" />
@@ -228,6 +241,27 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
         <div className="max-w-4xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsContent value="chat" className="space-y-6">
+              {memberContext && (
+                <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium">
+                        Member Context Active: {memberContext.name} ({memberContext.memberId})
+                      </span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setMemberContext(null)}
+                      className="h-auto p-1"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </Card>
+              )}
+              
               {messages.map(renderMessage)}
               
               {isTyping && (
@@ -251,6 +285,10 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
               )}
               
               <div ref={messagesEndRef} />
+            </TabsContent>
+            
+            <TabsContent value="member">
+              <MemberAssist onMemberContext={setMemberContext} />
             </TabsContent>
             
             <TabsContent value="bookmarks">
@@ -291,7 +329,10 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about KPIs, forecasts, agent analysis, campaign insights..."
+                placeholder={memberContext ? 
+                  `Ask about ${memberContext.name} or general analytics...` : 
+                  "Ask about KPIs, forecasts, agent analysis, member lookup, campaign insights..."
+                }
                 className="flex-1 bg-background/50 border-border/50"
                 disabled={isTyping}
               />

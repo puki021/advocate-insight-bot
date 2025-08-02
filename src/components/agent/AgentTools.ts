@@ -1,5 +1,6 @@
 import { mockCallCenterData } from '@/data/mockData';
 import { availableTools, getKPIDefinition } from '@/data/knowledgeBase';
+import { getMemberById, searchMembersByPhone, searchMembersByName, MemberProfile } from '@/data/memberData';
 
 export interface ToolResult {
   success: boolean;
@@ -23,6 +24,10 @@ export class AgentTools {
         return this.forecastDemand(parameters);
       case 'quality_analysis':
         return this.analyzeQuality(parameters);
+      case 'member_lookup':
+        return this.lookupMember(parameters);
+      case 'member_journey':
+        return this.analyzeMemberJourney(parameters);
       default:
         return {
           success: false,
@@ -275,6 +280,123 @@ export class AgentTools {
       success: true,
       data: qualityData,
       message: `Quality analysis completed. Overall satisfaction: ${qualityData.overallSatisfaction}/5.0`
+    };
+  }
+
+  private async lookupMember(params: any): Promise<ToolResult> {
+    const { search_term, search_type = 'name' } = params;
+    
+    if (!search_term) {
+      return {
+        success: false,
+        message: 'Search term is required for member lookup'
+      };
+    }
+
+    let members: MemberProfile[] = [];
+    
+    switch (search_type) {
+      case 'id':
+        const member = getMemberById(search_term);
+        members = member ? [member] : [];
+        break;
+      case 'phone':
+        members = searchMembersByPhone(search_term);
+        break;
+      case 'name':
+      default:
+        members = searchMembersByName(search_term);
+        break;
+    }
+
+    if (members.length === 0) {
+      return {
+        success: false,
+        message: `No members found for "${search_term}"`
+      };
+    }
+
+    const member = members[0]; // Return first match for chat context
+    
+    return {
+      success: true,
+      data: {
+        member,
+        searchResults: members.length,
+        memberInfo: {
+          name: member.name,
+          tier: member.demographics.tier,
+          sentiment: member.currentContext.sentiment,
+          riskScore: member.currentContext.riskScore,
+          lifetimeValue: member.currentContext.lifetimeValue,
+          activeIssues: member.currentContext.activeIssues,
+          persona: member.persona.name
+        }
+      },
+      message: `Found member: ${member.name} (${member.demographics.tier} tier, ${member.currentContext.sentiment} sentiment)`
+    };
+  }
+
+  private async analyzeMemberJourney(params: any): Promise<ToolResult> {
+    const { member_id } = params;
+    
+    const member = getMemberById(member_id);
+    if (!member) {
+      return {
+        success: false,
+        message: `Member with ID "${member_id}" not found`
+      };
+    }
+
+    const journey = member.journey;
+    const channels = new Set(journey.map(e => e.channel));
+    const successfulInteractions = journey.filter(e => e.outcome === 'success').length;
+    const escalatedInteractions = journey.filter(e => e.outcome === 'escalated').length;
+    
+    // Journey insights
+    const journeySpan = Math.round(
+      (new Date(journey[journey.length - 1]?.timestamp).getTime() - 
+       new Date(journey[0]?.timestamp).getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    const insights = [];
+    
+    if (escalatedInteractions > 0) {
+      insights.push(`${escalatedInteractions} interactions required escalation`);
+    }
+    
+    if (channels.has('call_center') && channels.has('chat')) {
+      insights.push('Customer uses both call center and chat support');
+    }
+    
+    if (successfulInteractions / journey.length > 0.8) {
+      insights.push('High success rate in interactions');
+    }
+
+    return {
+      success: true,
+      data: {
+        member: member.name,
+        journeyStats: {
+          totalTouchpoints: journey.length,
+          channelsUsed: channels.size,
+          successfulInteractions,
+          escalatedInteractions,
+          journeySpan: `${journeySpan} days`
+        },
+        insights,
+        recentActivity: journey.slice(-3).map(event => ({
+          touchpoint: event.touchpoint,
+          activity: event.activity,
+          outcome: event.outcome,
+          timestamp: event.timestamp
+        }))
+      },
+      chartData: {
+        type: 'journey_timeline',
+        data: journey
+      },
+      message: `Journey analysis for ${member.name}: ${journey.length} touchpoints across ${channels.size} channels over ${journeySpan} days`
     };
   }
 }
