@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Bot, User, LogOut, Bookmark, FileText, Sparkles } from 'lucide-react';
+import { Send, Bot, User, LogOut, Bookmark, FileText, Sparkles, Cpu } from 'lucide-react';
 import { Message, User as UserType } from '@/types';
 import { generateResponse } from '@/data/mockData';
 import { AgenticAgent } from '@/components/agent/AgenticAgent';
@@ -16,6 +16,7 @@ import { MemberProfile } from '@/data/memberData';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { TransformerArchitecture } from '@/components/ai/TransformerArchitecture';
 
 interface ChatInterfaceProps {
   user: UserType;
@@ -26,7 +27,22 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Welcome, ${user.name}! I'm your enhanced AI analytics assistant with advanced reasoning capabilities. I have access to comprehensive tools and knowledge base to provide deep insights into call center performance, KPIs, and strategic analysis. What would you like to explore?`,
+      content: `Welcome to OPTUM PRIME, ${user.name}! 🤖
+
+I am your advanced AI assistant leading a team of AUTOBOT agents in the fight against operational inefficiencies. Our AI Architecture consists of:
+
+🔵 **AUTOBOTS** (Allied AI Agents):
+• BUMBLEBEE - Benefits & Utilization Management
+• RATCHET - Rx Analytics & Treatment Care
+• IRONHIDE - Insurance & Revenue Operations Intelligence  
+• JAZZ - Just-in-time Analytics & Zero-latency Support
+
+🔴 **DECEPTICONS** (Problems We Fight):
+• MEGATRON - Massive Expenses & Treatment Gaps
+• STARSCREAM - Skyrocketing Costs Requiring Emergency Action
+• SOUNDWAVE - Silent Operational Undermining
+
+Explore the "AI Architecture" tab to see our full Transformer Universe! What would you like to analyze today?`,
       sender: 'assistant',
       timestamp: new Date(),
       type: 'text',
@@ -214,10 +230,14 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
         {/* Navigation Tabs */}
         <div className="container mx-auto px-4 pb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className={`grid w-full ${user.role === 'supervisor' || user.role === 'agent' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <TabsList className={`grid w-full ${user.role === 'supervisor' || user.role === 'agent' ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="chat" className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
                 AI Assistant
+              </TabsTrigger>
+              <TabsTrigger value="architecture" className="flex items-center gap-2">
+                <Cpu className="w-4 h-4" />
+                AI Architecture
               </TabsTrigger>
               {(user.role === 'supervisor' || user.role === 'agent') && (
                 <TabsTrigger value="member" className="flex items-center gap-2">
@@ -287,6 +307,10 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
               )}
               
               <div ref={messagesEndRef} />
+            </TabsContent>
+            
+            <TabsContent value="architecture">
+              <TransformerArchitecture />
             </TabsContent>
             
             <TabsContent value="member">
