@@ -200,7 +200,7 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
       <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Advocate Insight Bot</h1>
+            <h1 className="text-xl font-semibold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">OPTUM PRIME</h1>
             <p className="text-sm text-muted-foreground">
               {user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Dashboard • Enhanced AI with Tools & Knowledge Base
             </p>
