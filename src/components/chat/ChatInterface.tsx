@@ -27,22 +27,17 @@ export const ChatInterface = ({ user, onLogout }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Welcome to OPTUM PRIME, ${user.name}! 🤖
+      content: `Welcome to Optum PRIME, ${user.name}! 🤖
 
-I am your advanced AI assistant leading a team of AUTOBOT agents in the fight against operational inefficiencies. Our AI Architecture consists of:
+I'm your advanced AI assistant equipped with powerful tools and knowledge base. I can help you with:
 
-🔵 **AUTOBOTS** (Allied AI Agents):
-• BUMBLEBEE - Benefits & Utilization Management
-• RATCHET - Rx Analytics & Treatment Care
-• IRONHIDE - Insurance & Revenue Operations Intelligence  
-• JAZZ - Just-in-time Analytics & Zero-latency Support
+📊 KPI Analysis & Performance Metrics
+📈 Forecasting & Predictive Analytics  
+👥 Member & Agent Analysis
+🔍 Campaign Insights & Optimization
+📋 Custom Reports & Data Visualization
 
-🔴 **DECEPTICONS** (Problems We Fight):
-• MEGATRON - Massive Expenses & Treatment Gaps
-• STARSCREAM - Skyrocketing Costs Requiring Emergency Action
-• SOUNDWAVE - Silent Operational Undermining
-
-Explore the "AI Architecture" tab to see our full Transformer Universe! What would you like to analyze today?`,
+What would you like to analyze today?`,
       sender: 'assistant',
       timestamp: new Date(),
       type: 'text',
